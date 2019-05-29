@@ -90,7 +90,7 @@ function tenf_r( $data ) {
  */
 function tenf_scripts() {
 	wp_enqueue_style( 'tenf-style', get_stylesheet_uri() );
-	wp_enqueue_style( 'tenf-style-mobile', get_stylesheet_directory() . '/style-mobile.css' );
+	wp_enqueue_style( 'tenf-style-mobile', get_stylesheet_directory_uri() . '/style-mobile.css' );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
