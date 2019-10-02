@@ -72,6 +72,9 @@ if ( ! function_exists( 'tenf_setup' ) ) :
 			'flex-width'  => true,
 			'flex-height' => true,
 		) );
+
+    add_image_size( 'extra-large', 1200, 1200 );
+    add_image_size( 'hero', 1920, 1920 );
 	}
 endif;
 add_action( 'after_setup_theme', 'tenf_setup' );
