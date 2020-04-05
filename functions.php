@@ -7,6 +7,18 @@
  * @package tenf
  */
 
+/**
+ * For cache-busting. Always starts at 1.0.0 for a new project.
+ */
+define( 'TENF_VERSION', '2.4.0' );
+
+function tenf_version() {
+  if ( WP_DEBUG )
+    return time();
+
+  return TENF_VERSION;
+}
+
 if ( ! function_exists( 'tenf_setup' ) ) :
 	/**
 	 * Sets up theme defaults and registers support for various WordPress features.
@@ -92,8 +104,8 @@ function tenf_r( $data ) {
  * Enqueue scripts and styles.
  */
 function tenf_scripts() {
-	wp_enqueue_style( 'tenf-style', get_stylesheet_uri() );
-	wp_enqueue_style( 'tenf-style-mobile', get_stylesheet_directory_uri() . '/style-mobile.css' );
+	wp_enqueue_style( 'tenf-style', get_stylesheet_uri(), array(), tenf_version() );
+	wp_enqueue_style( 'tenf-style-mobile', get_stylesheet_directory_uri() . '/style-mobile.css', array(), tenf_version() );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
