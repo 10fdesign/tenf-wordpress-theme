@@ -10,7 +10,7 @@
 /**
  * For cache-busting. Always starts at 1.0.0 for a new project.
  */
-define( 'TENF_VERSION', '2.4.0' );
+define( 'TENF_VERSION', '1.0.0' );
 
 function tenf_version() {
   if ( WP_DEBUG )
@@ -112,4 +112,9 @@ function tenf_scripts() {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'tenf_scripts' );
+
+function tenf_get_image_url( $image_id, $size=false ) {
+    $image_src = wp_get_attachment_image_src( $image_id, $size );
+    return $image_src ? $image_src[0] : '';
+}
 
