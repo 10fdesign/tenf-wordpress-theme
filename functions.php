@@ -104,7 +104,7 @@ function tenf_r( $data ) {
  * Enqueue scripts and styles.
  */
 function tenf_scripts() {
-	wp_enqueue_style( 'bootstrap-grid', get_stylesheet_directory_uri() . '/bootstrap-grid.css' array(), tenf_version() );
+	wp_enqueue_style( 'bootstrap-grid', get_stylesheet_directory_uri() . '/bootstrap-grid.css', array(), tenf_version() );
 	wp_enqueue_style( 'tenf-style', get_stylesheet_uri(), array(), tenf_version() );
 	wp_enqueue_style( 'tenf-style-mobile', get_stylesheet_directory_uri() . '/style-mobile.css', array(), tenf_version() );
 
