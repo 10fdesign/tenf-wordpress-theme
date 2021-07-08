@@ -119,16 +119,20 @@ function tenf_get_image_url( $image_id, $size=false ) {
     return $image_src ? $image_src[0] : '';
 }
 
-function tenf_image($image_id, $size='medium', $sizes='') {
+function tenf_image($image_id, $size='medium', $sizes=false) {
 	$srcset = wp_get_attachment_image_srcset($image_id, $size);
 	$alt = get_post_meta($image_id, '_wp_attachment_image_alt', TRUE);
-	$image_src = wp_get_attachment_image_src($image_id, $size);
+	$image_src = wp_get_attachment_image_src($image_id, $size)[0];
 
 	$image_tag = "";
-	$image_tag .= "<img srcset='$srcset'";
+	$image_tag .= "<img";
 		
-	if (!empty($sizes)):
-			$image_tag .= " sizes='$sizes'";
+	if ($sizes):
+		$image_tag .= " srcset='$srcset'";
+	endif;
+		
+	if ($sizes):
+		$image_tag .= " sizes='$sizes'";
 	endif;
 
 	$image_tag .=	" src='$image_src' alt='$alt'>";
