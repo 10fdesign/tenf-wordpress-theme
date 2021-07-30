@@ -119,24 +119,82 @@ function tenf_get_image_url( $image_id, $size=false ) {
     return $image_src ? $image_src[0] : '';
 }
 
-function tenf_image($image_id, $size='medium', $sizes=false) {
+// Pass in sizes like this: 
+//   tenf_image($id, 'large', 'md-4');
+//   tenf_image($id, 'large', 'md-6 lg-4');
+//   tenf_image($id, 'large', 'md-6 lg-4 sm-3');
+//   tenf_image($id, 'large', true); // < this one is full width (100vw)
+// or whatever
+function tenf_image($image_id, $size='medium', $bootstrap_classes=false) {
+	if (empty($image_id)) {
+		return "";
+	}
 	$srcset = wp_get_attachment_image_srcset($image_id, $size);
 	$alt = get_post_meta($image_id, '_wp_attachment_image_alt', TRUE);
 	$image_src = wp_get_attachment_image_src($image_id, $size)[0];
+	$sizes = false;
 
-	$image_tag = "";
-	$image_tag .= "<img";
-		
-	if ($sizes):
-		$image_tag .= " srcset='$srcset'";
-	endif;
-		
-	if ($sizes):
-		$image_tag .= " sizes='$sizes'";
-	endif;
+	// this array is _ordered_
+	$size_array = array(
+		// 'class' => array(screen_size, container_size),
+		'sm' => array(576, 540),
+		'md' => array(768, 720),
+		'lg' => array(992, 960),
+		'xl' => array(1200, 1140),
+		'xxl' => array(1400, 1320),
+	);
 
-	$image_tag .=	" src='$image_src' alt='$alt'>";
+	// this is appended to and then used to contruct the sizes attribute
+	$output_array = array();
 
-	return $image_tag;
+	if (is_string($bootstrap_classes)) {
+		$sizes = '';
+		$class_array = explode(' ', $bootstrap_classes);
+		foreach($class_array as $class) {
+			if (empty($class)) {
+				continue;
+			}
+			$matches = array();
+			if (!preg_match('/(\w*)-(\d*)/', $class, $matches)) {
+				tenf_r("Error in tenf_image - size doesn\'t conform to format: \"$class\"");
+				$sizes = false;
+				break;
+			};
+			$class = $matches[1];
+			$width = intval($matches[2]);
+			$output_array[$class] = $width;
+		}
+		$width = false;
+		foreach ($size_array as $size_key => $size_value) {
+			if (array_key_exists($size_key, $output_array)) {
+				$width = $output_array[$size_key];
+			}
+			if ($width) {
+				$val = $size_value[1] * $width / 12;
+				$sizes = "(min-width: {$size_value[0]}px) {$val}px, $sizes";
+			}
+		}
+		$sizes .= 'calc(100vw - 1.5rem)'; // adjusted for padding in extra container small sizes
+	} elseif ($bootstrap_classes == true) {
+		$sizes = '100vw';
+	}
+	// construct img tag
+	$output = '<img ';
+	if ($sizes) {
+		$output .= 'srcset="' . $srcset . '" ';
+		$output .= 'sizes="' . $sizes . '" ';
+	}
+	$output .= 'src="' . $image_src . '" ';
+	$output .= 'alt="' . $alt . '">';
+	return $output;
 }
 
+// used to determine if the active user has a given role or capability
+function user_has_role($role_or_cap) {
+  $u = wp_get_current_user();
+  $roles_and_caps = $u->get_role_caps();
+
+  if( isset ( $roles_and_caps[$role_or_cap] ) and $roles_and_caps[$role_or_cap] === true ) {
+  	return true;
+	}
+}
