@@ -129,6 +129,9 @@ function tenf_image($image_id, $size='medium', $bootstrap_classes=false) {
 	if (empty($image_id)) {
 		return "";
 	}
+	if (wp_check_filetype(wp_get_attachment_url($image_id))['ext'] == 'svg') {
+		return file_get_contents( wp_get_attachment_url($image_id) );
+	}
 	$srcset = wp_get_attachment_image_srcset($image_id, $size);
 	$alt = get_post_meta($image_id, '_wp_attachment_image_alt', TRUE);
 	$image_src = wp_get_attachment_image_src($image_id, $size)[0];
@@ -198,3 +201,34 @@ function user_has_role($role_or_cap) {
   	return true;
 	}
 }
+
+// SVG Support for admin uploads
+add_filter( 'wp_check_filetype_and_ext', function($data, $file, $filename, $mimes) {
+  $filetype = wp_check_filetype( $filename, $mimes );
+  if (!user_has_role('administrator')) {
+    return $data;
+  }
+  return [
+    'ext'             => $filetype['ext'],
+    'type'            => $filetype['type'],
+    'proper_filename' => $data['proper_filename']
+  ];
+}, 10, 4 );
+
+function tenf_mime_types( $mimes ){
+  $mimes['svg'] = 'image/svg+xml';
+  return $mimes;
+}
+add_filter( 'upload_mimes', 'tenf_mime_types' );
+
+function fix_svg() {
+  echo '<style type="text/css">
+        .attachment-266x266, .thumbnail img {
+             width: 100% !important;
+             height: auto !important;
+        }
+        </style>';
+}
+add_action( 'admin_head', 'fix_svg' );
+
+// End SVG Support for admin uploads
