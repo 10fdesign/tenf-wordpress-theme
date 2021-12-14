@@ -120,21 +120,29 @@ function tenf_get_image_url( $image_id, $size=false ) {
 }
 
 // Pass in sizes like this: 
-//   tenf_image($id, 'large', 'md-4');
-//   tenf_image($id, 'large', 'md-6 lg-4');
-//   tenf_image($id, 'large', 'md-6 lg-4 sm-3');
-//   tenf_image($id, 'large', true); // < this one is full width (100vw)
-// or whatever
-function tenf_image($image_id, $size='medium', $bootstrap_classes=false) {
+//   tenf_image($id, ['size' => 'large', 'bootstrap_sizes' => 'md-4'])
+//   tenf_image($id, ['size' => 'large', 'bootstrap_sizes' => 'md-4 lg-4'])
+//   tenf_image($id, ['size' => 'large', 'bootstrap_sizes' => 'md-4 lg-4 sm-3'])
+//   tenf_image($id, ['size' => 'large', 'bootstrap_sizes' => 'md-4 lg-4 sm-3'])
+  // tenf_image($id, 'large', true); // < this one is full width (100vw)
+function tenf_image( $image_id, $args = null ) {
+	$defaults = array(
+		'size' => 							'medium',	# wordpress image size
+		'bootstrap_sizes' => 		null,     # list of bootstrap style sizes
+		'inline_svg' => 				null,     # outputs as an <svg> tag, if true and file is svg
+		'attributes' =>         null,     # output extra attributes (ex: 'attributes' => ['style' => 'object-position: top;'])
+		'full_width' =>  				false,    # true if the image is full width
+	);
+	$args = wp_parse_args( $args, $defaults );
 	if (empty($image_id)) {
 		return "";
 	}
-	if (wp_check_filetype(wp_get_attachment_url($image_id))['ext'] == 'svg') {
+	if ($args['inline_svg'] && wp_check_filetype(wp_get_attachment_url($image_id))['ext'] == 'svg') {
 		return file_get_contents( wp_get_attachment_url($image_id) );
 	}
-	$srcset = wp_get_attachment_image_srcset($image_id, $size);
+	$srcset = wp_get_attachment_image_srcset($image_id, $args['size']);
 	$alt = get_post_meta($image_id, '_wp_attachment_image_alt', TRUE);
-	$image_src = wp_get_attachment_image_src($image_id, $size)[0];
+	$image_src = wp_get_attachment_image_src($image_id, $args['size'])[0];
 	$sizes = false;
 
 	// this array is _ordered_
@@ -150,9 +158,9 @@ function tenf_image($image_id, $size='medium', $bootstrap_classes=false) {
 	// this is appended to and then used to contruct the sizes attribute
 	$output_array = array();
 
-	if (is_string($bootstrap_classes)) {
+	if (is_string($args['bootstrap_sizes'])) {
 		$sizes = '';
-		$class_array = explode(' ', $bootstrap_classes);
+		$class_array = explode(' ', $args['bootstrap_sizes']);
 		foreach($class_array as $class) {
 			if (empty($class)) {
 				continue;
@@ -178,11 +186,17 @@ function tenf_image($image_id, $size='medium', $bootstrap_classes=false) {
 			}
 		}
 		$sizes .= 'calc(100vw - 1.5rem)'; // adjusted for padding in extra container small sizes
-	} elseif ($bootstrap_classes == true) {
+	}
+	if ($args['full_width'] == true) {
 		$sizes = '100vw';
 	}
 	// construct img tag
 	$output = '<img ';
+	if ($args['attributes']) {
+		foreach ($args['attributes'] as $key => $value) {
+			$output .= $key . '="' . $value . '" ';
+		}
+	}
 	if ($sizes) {
 		$output .= 'srcset="' . $srcset . '" ';
 		$output .= 'sizes="' . $sizes . '" ';
